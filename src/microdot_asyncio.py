@@ -352,6 +352,9 @@ class Microdot(BaseMicrodot):
                 if 413 in self.error_handlers:
                     res = await self._invoke_handler(
                         self.error_handlers[413], req)
+                elif 0 in self.error_handlers:
+                    res = await self._invoke_handler(
+                        self.error_handlers[0], req)
                 else:
                     res = 'Payload too large', 413
             else:
@@ -386,11 +389,18 @@ class Microdot(BaseMicrodot):
                     elif f in self.error_handlers:
                         res = await self._invoke_handler(
                             self.error_handlers[f], req)
+                    elif 0 in self.error_handlers:
+                        res = await self._invoke_handler(
+                            self.error_handlers[0], req)
                     else:
                         res = 'Not found', f
                 except HTTPException as exc:
                     if exc.status_code in self.error_handlers:
-                        res = self.error_handlers[exc.status_code](req)
+                        res = self.error_handlers[exc.status_code](req)  # FIXME: should use _invoke_handler() ?
+                    elif 0 in self.error_handlers:
+                        res = self.error_handlers[0](req)                # FIXME: should use _invoke_handler() ?
+                        # res = await self._invoke_handler(
+                        #     self.error_handlers[0], req)
                     else:
                         res = exc.reason, exc.status_code
                 except Exception as exc:
@@ -414,11 +424,17 @@ class Microdot(BaseMicrodot):
                         if 500 in self.error_handlers:
                             res = await self._invoke_handler(
                                 self.error_handlers[500], req)
+                        elif 0 in self.error_handlers:
+                            res = await self._invoke_handler(
+                                self.error_handlers[0], req)
                         else:
                             res = 'Internal server error', 500
         else:
             if 400 in self.error_handlers:
                 res = await self._invoke_handler(self.error_handlers[400], req)
+            elif 0 in self.error_handlers:
+                res = await self._invoke_handler(
+                    self.error_handlers[0], req)
             else:
                 res = 'Bad request', 400
         if isinstance(res, tuple):

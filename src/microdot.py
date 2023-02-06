@@ -907,7 +907,7 @@ class Microdot():
         self.after_request_handlers.append(f)
         return f
 
-    def errorhandler(self, status_code_or_exception_class):
+    def errorhandler(self, status_code_or_exception_class=0):
         """Decorator to register a function as an error handler. Error handler
         functions for numeric HTTP status codes must accept a single argument,
         the request object. Error handler functions for Python exceptions
@@ -1098,6 +1098,8 @@ class Microdot():
             if req.content_length > req.max_content_length:
                 if 413 in self.error_handlers:
                     res = self.error_handlers[413](req)
+                elif 0 in self.error_handlers:
+                    res = self.error_handlers[0](req)
                 else:
                     res = 'Payload too large', 413
             else:
@@ -1128,11 +1130,15 @@ class Microdot():
                             res = handler(req, res) or res
                     elif f in self.error_handlers:
                         res = self.error_handlers[f](req)
+                    elif 0 in self.error_handlers:
+                        res = self.error_handlers[0](req)
                     else:
                         res = 'Not found', f
                 except HTTPException as exc:
                     if exc.status_code in self.error_handlers:
                         res = self.error_handlers[exc.status_code](req)
+                    elif 0 in self.error_handlers:
+                        res = self.error_handlers[0](req)
                     else:
                         res = exc.reason, exc.status_code
                 except Exception as exc:
@@ -1154,11 +1160,15 @@ class Microdot():
                     if res is None:
                         if 500 in self.error_handlers:
                             res = self.error_handlers[500](req)
+                        elif 0 in self.error_handlers:
+                            res = self.error_handlers[0](req)
                         else:
                             res = 'Internal server error', 500
         else:
             if 400 in self.error_handlers:
                 res = self.error_handlers[400](req)
+            elif 0 in self.error_handlers:
+                res = self.error_handlers[0](req)
             else:
                 res = 'Bad request', 400
 
